@@ -4,6 +4,12 @@ const express = require('express');
 const app = express();
 const connectDB = require('./db/connect')
 
+//security packages
+const helmet = require('helmet')
+const cors = require('cors')
+const xss = require('xss-clean')
+const rateLimiter = require('express-rate-limit')
+
 const authRouter = require('./routes/auth')
 const jobsRouter = require('./routes/jobs')
 
@@ -14,7 +20,12 @@ const notFoundMiddleware = require('./middleware/not-found');
 const errorHandlerMiddleware = require('./middleware/error-handler');
 
 
-
+app.enable('trust proxy')
+app.use(rateLimiter({
+  windowMs: 15 * 60 * 1000, //15 mins
+  max: 100, //limit ip to 100 requests per windowMs
+})
+);
 app.use(express.json());
 app.use(express.urlencoded({extended: false}))
 // extra packages
