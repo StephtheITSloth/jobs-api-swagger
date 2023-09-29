@@ -10,12 +10,13 @@ const getAllJobs = async (req,res) => {
 
 const getSingleJob = async (req,res) => {
     const {user:{userId}, params: {id:jobId} } = req
-    const job = await Job.findOne({createdBy:userId, _id: jobId})
-    res.status(StatusCodes.OK).json({job})
+    const job = await Job.findOne({createdBy:userId, _id:jobId})
 
     if(!job){
-        throw new NotFoundError(`No job with id: ${req.params.id}`)
+        throw new NotFoundError(`No job with id: ${jobId}`)
     }
+    res.status(StatusCodes.OK).json({job})
+
 }
 
 const createJob = async (req,res) => {
@@ -25,11 +26,36 @@ const createJob = async (req,res) => {
 }
 
 const updateJob = async (req,res) => {
-    res.send('update job')
+    const {company, position} = req.body
+    const {userId} = req.user
+    const jobId = req.params.id
+
+    if(!company || !position){
+        throw new BadRequestError(`Company and Position fields must not be empty`)
+
+    }
+   
+    const job = await Job.findByIdAndUpdate({_id: jobId,createdBy: userId}, req.body, {new: true, runValidators: true})
+
+    if(!job){
+        throw new NotFoundError(`No job with id: ${jobId}`)
+    }
+
+    res.status(StatusCodes.OK).json({job})
 }
 
 const deleteJob = async (req,res) => {
-    res.send('delete job')
+    const {userId} = req.user
+    const jobId = req.params.id
+
+    const job = await Job.findByIdAndDelete({_id: jobId, createdBy: userId})
+
+    if(!job){
+        throw new NotFoundError(`No job with id: ${jobId}`)
+    }
+
+    res.status(StatusCodes.OK).json({job})
+
 }
 
 module.exports = {
